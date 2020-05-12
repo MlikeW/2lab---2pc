@@ -37,13 +37,26 @@ namespace TwoPhaseCommitTransactions.classes
         }
 
         [Test]
+        public void TestInsertIntoCard()
+        {
+            var cardDb = DbUtilities.GetAndOpenConnection("Card");
+            cardDb.DropTableIfExist("Account");
+            cardDb.CreateAccountTable();
+            cardDb.InsertIntoTable("Account", "('mybank', 30)");
+
+            cardDb.Close();
+        }
+
+        [Test]
         public void TestAlmostFinalOk()
         {
             var flyDb = DbUtilities.GetAndOpenConnection("FlyBooking");
             var hotelDb = DbUtilities.GetAndOpenConnection("HotelBooking");
+            var cardDb = DbUtilities.GetAndOpenConnection("Card");
 
             var transHotel = hotelDb.BeginTransaction();
             var transFly = flyDb.BeginTransaction();
+            var transCard = cardDb.BeginTransaction();
             try
             {
                 var flyCondition1 = $"fromcity = 'Kyiv' AND tocity = 'London' AND dateticket = {"2020-10-12".ToDate()}";
@@ -57,6 +70,8 @@ namespace TwoPhaseCommitTransactions.classes
                 var priceFly2 = flyDb.SelectFromTable<int>("FlyTable", flyCondition2, "price");
                 flyDb.UpdateTable("FlyTable", "availabillity".Minus(), $"{flyCondition2} AND price = {priceFly2}");
 
+                cardDb.UpdateTable("Account", "amount".Minus(priceFly1 + priceFly2 + priceHotel), $"bank = 'mybank'");
+
                 flyDb.PrepareTransaction(FlyTransactionName);
                 hotelDb.PrepareTransaction(HotelTransactionName);
 
@@ -67,6 +82,7 @@ namespace TwoPhaseCommitTransactions.classes
             {
                 transHotel.Rollback();
                 transFly.Rollback();
+                transCard.Rollback();
                 Console.WriteLine($"\nTransaction Failed: \n{ex.Message}");
             }
 
@@ -77,6 +93,7 @@ namespace TwoPhaseCommitTransactions.classes
 
             flyDb.Close();
             hotelDb.Close();
+            cardDb.Close();
             Console.WriteLine("\nTransaction Successful");
         }
     }

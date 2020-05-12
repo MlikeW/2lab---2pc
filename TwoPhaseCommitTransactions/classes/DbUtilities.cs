@@ -1,7 +1,7 @@
 ﻿using System;
 using Npgsql;
 
-namespace TwoPhaseCommitTransactions
+namespace TwoPhaseCommitTransactions.classes
 {
     static class DbUtilities
     {
@@ -78,6 +78,13 @@ namespace TwoPhaseCommitTransactions
                                                              "availabillity int CHECK(availabillity >= 0)" +
                                                              ");");
 
+
+        public static void CreateAccountTable(this NpgsqlConnection connection)
+            => connection.ExecuteCommandAndGetAnswer<string>("CREATE TABLE Account (" +
+                                                             "bank varchar(255) unique," +
+                                                             "amount int CHECK(amount >= 0)" +
+                                                             ");");
+
         public static void DropTableIfExist(this NpgsqlConnection connection, string table)
         {
             try
@@ -88,6 +95,10 @@ namespace TwoPhaseCommitTransactions
             {
                 Console.Write($"There was no table '{table}'");
             }
+        }
+
+        static void Main()
+        {
         }
     }
 }

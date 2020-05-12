@@ -8,6 +8,7 @@ namespace TwoPhaseCommitTransactions.classes
     {
         private const string FlyTransactionName = "FlyTransaction";
         private const string HotelTransactionName = "HotelTransaction";
+        private const string CardTransactionName = "CardTransaction";
 
         [Test]
         public void TestInsertIntoFly()
@@ -74,9 +75,11 @@ namespace TwoPhaseCommitTransactions.classes
 
                 flyDb.PrepareTransaction(FlyTransactionName);
                 hotelDb.PrepareTransaction(HotelTransactionName);
+                cardDb.PrepareTransaction(CardTransactionName);
 
                 flyDb.CommitPrepared(FlyTransactionName);
                 hotelDb.CommitPrepared(HotelTransactionName);
+                cardDb.CommitPrepared(CardTransactionName);
             }
             catch (Exception ex)
             {
